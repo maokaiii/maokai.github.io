@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Added Author Meta Tag -->
+    <meta name="author" content="maokaiii">
+    <title>PoE 3x3 League Chart Synthesis Calculator by maokaiii</title>
+    <style>
+        /* --- Color Palette & Variables --- */
+        :root {
+            --bg-color: #0d0d0d;
+            --panel-bg: #1a1a1a;
+            --border-color: #333;
+            --text-color: #e0e0e0;
+            --path-color: #f7c325; /* Gold-like color for PoE paths */
+            --cell-bg: #262626;
+            --cell-hover: #333;
+            --btn-bg: #b97a21; /* PoE unique item color scheme */
+            --btn-hover: #e09f3e;
+            --setup-highlight: #4a90e2; /* Highlight color for locked tiles */
+        }
+
+        /* --- General Body Styles --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* --- Typography --- */
+        h1 { color: var(--path-color); margin-bottom: 0px; }
+        .author-tag { font-size: 12px; color: #888; margin-bottom: 10px; font-style: italic; }
+        .description { font-size: 14px; color: #aaa; margin-bottom: 20px; }
+
+        /* --- Main Layout --- */
+        .main-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto 20px auto;
+        }
+
+        /* --- Pre-placement Panel (Left Side) --- */
+        .setup-panel {
+            background-color: var(--panel-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            flex: 1;
+            min-width: 340px;
+        }
+
+        /* --- Drag & Drop Palette --- */
+        .palette {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #111;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+
+        .palette-item {
+            width: 50px;
+            height: 50px;
+            background: var(--cell-bg);
+            border: 1px solid #555;
+            border-radius: 4px;
+            cursor: grab;
+            position: relative;
+        }
+        .palette-item:active { cursor: grabbing; }
+
+        .palette-item-label {
+            font-size: 11px;
+            margin-top: 5px;
+            color: #aaa;
+        }
+
+        .palette-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- 3x3 Setup Grid --- */
+        .setup-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 70px);
+            grid-template-rows: repeat(3, 70px);
+            gap: 6px;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        /* --- Individual Grid Cells --- */
+        .setup-cell {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            background: var(--cell-bg);
+            border: 1px dashed #555;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .setup-cell:hover { background: var(--cell-hover); border-color: #777; }
+        .setup-cell.drag-over { background: #333; border-color: var(--setup-highlight); border-style: solid; }
+        .setup-cell.locked { border: 1px solid var(--setup-highlight); border-style: solid; }
+
+        /* --- Inventory Input Panel (Right Side) --- */
+        .inventory-panel {
+            background-color: var(--panel-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            flex: 1;
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* --- Input Fields for Tile Quantities --- */
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #111;
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+
+        .input-group input {
+            width: 50px;
+            padding: 5px;
+            text-align: center;
+            background: #222;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        /* --- Action Buttons --- */
+        .controls-footer {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background-color: var(--btn-bg);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: var(--btn-hover); }
+        button.reset-btn { background-color: #555; }
+        button.reset-btn:hover { background-color: #777; }
+
+        #status { margin: 15px 0; font-size: 16px; font-weight: bold; }
+
+        /* --- Visual Path Rendering for Generated Charts --- */
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(3, 50px);
+            gap: 2px;
+            background: #444;
+            padding: 2px;
+            border-radius: 4px;
+            border: 2px solid #555;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+        }
+        .map-grid.connected { border-color: #4ade80; box-shadow: 0 0 10px rgba(74, 222, 128, 0.4); }
+
+        .cell-render { position: relative; width: 100%; height: 100%; background: var(--cell-bg); border-radius: 3px; }
+        .cell-render.locked { border: 1px solid var(--setup-highlight); box-sizing: border-box; }
+
+        /* Path Segments (Up, Down, Left, Right) */
+        .path { position: absolute; background: var(--path-color); box-shadow: 0 0 5px rgba(247, 195, 37, 0.5); }
+        .path-top { top: 0; left: calc(50% - 2px); width: 4px; height: 50%; }
+        .path-right { top: calc(50% - 2px); right: 0; width: 50%; height: 4px; }
+        .path-bottom { bottom: 0; left: calc(50% - 2px); width: 4px; height: 50%; }
+        .path-left { top: calc(50% - 2px); left: 0; width: 50%; height: 4px; }
+        .path-center { position: absolute; top: calc(50% - 2px); left: calc(50% - 2px); width: 4px; height: 4px; background: var(--path-color); box-shadow: 0 0 5px rgba(247, 195, 37, 0.5); }
+
+        /* --- Results Display Area --- */
+        .results-container { margin-bottom: 40px; }
+        .results-title { font-size: 18px; margin-bottom: 15px; text-align: left; padding-left: 10%; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        .results-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 0 20px; }
+    </style>
+</head>
+<body>
+
+    <h1>PoE 3x3 League Chart Synthesis Calculator</h1>
+    <div class="author-tag">Created by maokaiii</div>
+    
+    <div class="description">
+        <strong>Drag and drop</strong> tiles from the left palette into the grid.<br>
+        <strong>Left-click</strong> a tile on the grid to rotate it clockwise; <strong>Right-click (or double-click)</strong> to clear it.
+    </div>
+
+    <div class="main-container">
+        <!-- Pre-placement Area (Left Side) -->
+        <div class="setup-panel">
+            <h3>Pre-placement (Drag & Click)</h3>
+            <div id="setup-info" style="font-size:13px; color:#aaa; margin-bottom: 10px;">Tip: Left-click to rotate / Right-click to clear</div>
+            
+            <!-- Draggable Tile Palette -->
+            <div class="palette">
+                <!-- Data type maps to piece IDs -->
+                <div class="palette-wrapper"><div class="palette-item" draggable="true" data-type="0" ondragstart="dragStart(event)"></div><div class="palette-item-label">Dead End</div></div>
+                <div class="palette-wrapper"><div class="palette-item" draggable="true" data-type="1" ondragstart="dragStart(event)"></div><div class="palette-item-label">Straight</div></div>
+                <div class="palette-wrapper"><div class="palette-item" draggable="true" data-type="2" ondragstart="dragStart(event)"></div><div class="palette-item-label">Corner</div></div>
+                <div class="palette-wrapper"><div class="palette-item" draggable="true" data-type="3" ondragstart="dragStart(event)"></div><div class="palette-item-label">3-Way</div></div>
+                <div class="palette-wrapper"><div class="palette-item" draggable="true" data-type="4" ondragstart="dragStart(event)"></div><div class="palette-item-label">4-Way</div></div>
+            </div>
+
+            <div class="setup-grid" id="setup-grid">
+                <!-- 9-cell grid generated dynamically via JavaScript -->
+            </div>
+        </div>
+
+        <!-- Inventory Input Area (Right Side) -->
+        <div class="inventory-panel">
+            <h3>Remaining Tiles in Inventory</h3>
+            <!-- Quantity inputs for different tile types -->
+            <div class="input-group">
+                <label>Dead End (1-way)</label>
+                <input type="number" id="qty-0" value="0" min="0" max="9">
+            </div>
+            <div class="input-group">
+                <label>Straight (2-way)</label>
+                <input type="number" id="qty-1" value="0" min="0" max="9">
+            </div>
+            <div class="input-group">
+                <label>Corner (2-way)</label>
+                <input type="number" id="qty-2" value="0" min="0" max="9">
+            </div>
+            <div class="input-group">
+                <label>T-Junction (3-way)</label>
+                <input type="number" id="qty-3" value="9" min="0" max="9">
+            </div>
+            <div class="input-group">
+                <label>Cross (4-way)</label>
+                <input type="number" id="qty-4" value="0" min="0" max="9">
+            </div>
+            <div id="total-info" style="margin-top:10px; color:#4ade80; font-weight:bold;">Total Count: 9 (Valid)</div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="controls-footer">
+        <button class="reset-btn" onclick="resetSetup()">Reset Board</button>
+        <button onclick="startCalculation()">Calculate</button>
+    </div>
+    
+    <!-- Status & Results Output Containers -->
+    <div id="status"></div>
+    <div id="results"></div>
+
+    <script>
+        // --- Core Data Structures ---
+
+        // Base states for dragging and dropping [Top, Right, Bottom, Left] (1 = path exists, 0 = no path)
+        const BASE_SHAPES = {
+            0: [1,0,0,0], // Dead End
+            1: [1,0,1,0], // Straight
+            2: [1,1,0,0], // Corner
+            3: [1,1,0,1], // T-Junction (3-way)
+            4: [1,1,1,1]  // Cross (4-way)
+        };
+
+        // All possible rotational states for each tile type (Used by the pathfinding algorithm, duplicates removed)
+        const PIECE_TYPES = {
+            0: { states: [[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]] },
+            1: { states: [[1,0,1,0], [0,1,0,1]] },
+            2: { states: [[1,1,0,0], [0,1,1,0], [0,0,1,1], [1,0,0,1]] },
+            3: { states: [[1,1,0,1], [1,1,1,0], [0,1,1,1], [1,0,1,1]] },
+            4: { states: [[1,1,1,1]] }
+        };
+
+        // Tracks the manually placed tiles by the user (9 slots)
+        let prePlaced = new Array(9).fill(null);
+        let placedCount = 0; // Number of tiles placed on the board
+
+        // --- UI Initialization ---
+
+        // Function to visually draw paths inside a grid cell based on its state array [Top, Right, Bottom, Left]
+        function renderPathsInto(element, state) {
+            element.innerHTML = '';
+            if (!state) return;
+            if (state[0]) element.innerHTML += '<div class="path path-top"></div>';
+            if (state[1]) element.innerHTML += '<div class="path path-right"></div>';
+            if (state[2]) element.innerHTML += '<div class="path path-bottom"></div>';
+            if (state[3]) element.innerHTML += '<div class="path path-left"></div>';
+            element.innerHTML += '<div class="path-center"></div>'; // Center nexus
+        }
+
+        // Initialize the palette visual representations
+        document.querySelectorAll('.palette-item').forEach((item, idx) => {
+            renderPathsInto(item, BASE_SHAPES[idx]);
+        });
+
+        // Initialize the interactive 3x3 drag-and-drop grid
+        function initSetupGrid() {
+            const grid = document.getElementById('setup-grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'setup-cell';
+                
+                // Drag & Drop Event Listeners
+                cell.ondragover = (e) => { e.preventDefault(); cell.classList.add('drag-over'); };
+                cell.ondragleave = (e) => { cell.classList.remove('drag-over'); };
+                cell.ondrop = (e) => dropToCell(e, i, cell);
+                
+                // Click Event Listeners (Rotate / Clear)
+                cell.onclick = () => rotateCell(i, cell);
+                cell.oncontextmenu = (e) => { e.preventDefault(); clearCell(i, cell); }; // Right click
+                cell.ondblclick = () => clearCell(i, cell); // Double click fallback
+
+                grid.appendChild(cell);
+            }
+            updateTotalCount();
+        }
+
+        // --- Interaction Logic (Drag & Drop, Rotate, Clear) ---
+
+        // Stores the dragged tile's ID
+        function dragStart(e) {
+            e.dataTransfer.setData('typeId', e.target.dataset.type);
+        }
+
+        // Handles placing a tile into a specific cell on the grid
+        function dropToCell(e, index, cellElem) {
+            e.preventDefault();
+            cellElem.classList.remove('drag-over');
+            const typeId = e.dataTransfer.getData('typeId');
+            if (typeId === "") return;
+
+            // Copy the default shape array into the placed array slot
+            prePlaced[index] = [...BASE_SHAPES[typeId]];
+            cellElem.classList.add('locked'); // Marks the cell visually as pre-placed
+            renderPathsInto(cellElem, prePlaced[index]);
+            updateTotalCount();
+        }
+
+        // Rotates the tile inside the cell clockwise
+        function rotateCell(index, cellElem) {
+            if (!prePlaced[index]) return; // Cannot rotate an empty cell
+            
+            // Logic for clockwise rotation: [Top, Right, Bottom, Left] -> [Left, Top, Right, Bottom]
+            let arr = prePlaced[index];
+            prePlaced[index] = [arr[3], arr[0], arr[1], arr[2]];
+            
+            renderPathsInto(cellElem, prePlaced[index]);
+        }
+
+        // Removes a tile from a cell
+        function clearCell(index, cellElem) {
+            prePlaced[index] = null;
+            cellElem.classList.remove('locked');
+            cellElem.innerHTML = '';
+            updateTotalCount();
+        }
+
+        // Resets the entire pre-placed board
+        function resetSetup() {
+            prePlaced.fill(null);
+            initSetupGrid();
+        }
+
+        // --- Inventory Counting Logic ---
+        
+        // Listen to changes in the inventory inputs
+        for(let i=0; i<=4; i++) {
+            document.getElementById(`qty-${i}`).addEventListener('input', updateTotalCount);
+        }
+
+        // Validates whether the total tiles (Board + Inventory) equals 9 (the size of a 3x3 chart)
+        function updateTotalCount() {
+            placedCount = prePlaced.filter(p => p !== null).length;
+            document.getElementById('setup-info').innerText = `Tip: Left-click rotate / Right-click clear (Placed: ${placedCount})`;
+
+            let bagCount = 0;
+            for(let i=0; i<=4; i++) bagCount += (parseInt(document.getElementById(`qty-${i}`).value) || 0);
+            
+            const total = placedCount + bagCount;
+            const infoDiv = document.getElementById('total-info');
+            infoDiv.innerText = `Total Count (Placed + Inventory): ${total}`;
+            infoDiv.style.color = (total === 9) ? '#4ade80' : '#ff6b6b';
+        }
+
+        // ==== Core Pathfinding Algorithm ====
+
+        let connectedSolutions = [];
+        let unconnectedSolutions = [];
+        const MAX_DISPLAY = 300;      // Limits rendering to prevent browser freeze
+        const MAX_SEARCH_LIMIT = 5000; // Limits recursive searches to avoid timeout
+
+        // Triggers the main calculation process
+        function startCalculation() {
+            let bagCount = 0;
+            const counts = [];
+            // Parse inventory inputs
+            for (let i = 0; i <= 4; i++) {
+                let val = parseInt(document.getElementById(`qty-${i}`).value) || 0;
+                counts[i] = val;
+                bagCount += val;
+            }
+
+            const total = placedCount + bagCount;
+            const statusDiv = document.getElementById('status');
+            const resultsDiv = document.getElementById('results');
+
+            // Quick validation before running the complex algorithm
+            if (total !== 9) {
+                statusDiv.style.color = '#ff6b6b';
+                statusDiv.innerText = `Error: (Placed ${placedCount} + Inventory ${bagCount}) Total must be exactly 9!`;
+                resultsDiv.innerHTML = '';
+                return;
+            }
+
+            statusDiv.style.color = '#e0e0e0';
+            statusDiv.innerText = 'Calculating chart synthesis based on pre-placed tiles...';
+            resultsDiv.innerHTML = '';
+            
+            // Execute algorithm with a tiny timeout to allow UI to update the status text
+            setTimeout(() => {
+                connectedSolutions = [];
+                unconnectedSolutions = [];
+                const grid = new Array(9).fill(null);
+                
+                const startTime = performance.now();
+                solve(grid, counts, 0); // Start DFS / Backtracking
+                const endTime = performance.now();
+
+                renderSolutions(endTime - startTime);
+            }, 50);
+        }
+
+        // Checks if placing 'state' at 'index' respects existing neighboring paths
+        function isValid(grid, index, state) {
+            // Check top neighbor (if not in the top row)
+            if (index >= 3) {
+                let pieceAbove = grid[index - 3];
+                // The bottom path of pieceAbove must match the top path of the current state
+                if (pieceAbove[2] !== state[0]) return false;
+            }
+            // Check left neighbor (if not in the leftmost column)
+            if (index % 3 !== 0) {
+                let pieceLeft = grid[index - 1];
+                // The right path of pieceLeft must match the left path of the current state
+                if (pieceLeft[1] !== state[3]) return false;
+            }
+            return true;
+        }
+
+        // Verifies if the fully constructed 9-tile grid has 1 contiguous network (all nodes connected)
+        // Uses Breadth-First Search (BFS) starting from cell 0
+        function isFullyConnected(grid) {
+            let visited = new Set([0]);
+            let queue = [0];
+            while(queue.length > 0) {
+                let curr = queue.shift();
+                let row = Math.floor(curr / 3);
+                let col = curr % 3;
+                
+                // Traverse Top if path exists and neighbor not visited
+                if (row > 0 && grid[curr][0] === 1 && !visited.has(curr - 3)) { visited.add(curr - 3); queue.push(curr - 3); }
+                // Traverse Right
+                if (col < 2 && grid[curr][1] === 1 && !visited.has(curr + 1)) { visited.add(curr + 1); queue.push(curr + 1); }
+                // Traverse Bottom
+                if (row < 2 && grid[curr][2] === 1 && !visited.has(curr + 3)) { visited.add(curr + 3); queue.push(curr + 3); }
+                // Traverse Left
+                if (col > 0 && grid[curr][3] === 1 && !visited.has(curr - 1)) { visited.add(curr - 1); queue.push(curr - 1); }
+            }
+            // If all 9 tiles were reachable from tile 0, it's fully connected
+            return visited.size === 9;
+        }
+
+        // Recursive Backtracking / Depth-First Search function to build the grid combinations
+        function solve(grid, counts, index) {
+            // Base Case: We successfully filled all 9 spots
+            if (index === 9) {
+                if (isFullyConnected(grid)) connectedSolutions.push([...grid]);
+                else unconnectedSolutions.push([...grid]);
+                return;
+            }
+
+            // Early termination conditions for performance
+            if (connectedSolutions.length >= MAX_DISPLAY) return;
+            if (connectedSolutions.length + unconnectedSolutions.length > MAX_SEARCH_LIMIT) return;
+
+            // If the user locked a piece in this position, enforce it
+            if (prePlaced[index] !== null) {
+                let state = prePlaced[index];
+                if (isValid(grid, index, state)) {
+                    grid[index] = state;
+                    solve(grid, counts, index + 1);
+                    grid[index] = null; // Backtrack
+                }
+                return;
+            }
+
+            // If it's an empty spot, iterate through available inventory pieces
+            for (let typeId = 0; typeId <= 4; typeId++) {
+                if (counts[typeId] > 0) {
+                    // Iterate through all rotational variants for this piece type
+                    for (let state of PIECE_TYPES[typeId].states) {
+                        if (isValid(grid, index, state)) {
+                            grid[index] = state;
+                            counts[typeId]--;
+                            solve(grid, counts, index + 1);
+                            
+                            // Backtrack: Restore states for the next loop iteration
+                            counts[typeId]++;
+                            grid[index] = null;
+                        }
+                    }
+                }
+            }
+        }
+
+        // --- Render Final Results to DOM ---
+        function renderSolutions(timeMs) {
+            const statusDiv = document.getElementById('status');
+            const container = document.getElementById('results');
+            let totalFound = connectedSolutions.length + unconnectedSolutions.length;
+
+            if (totalFound === 0) {
+                statusDiv.style.color = '#ff6b6b';
+                statusDiv.innerText = `Done (${timeMs.toFixed(1)}ms): No valid chart configurations found with the locked tiles and current inventory.`;
+                return;
+            }
+
+            statusDiv.style.color = '#4ade80';
+            statusDiv.innerText = `Done (${timeMs.toFixed(1)}ms): Found ${connectedSolutions.length} fully connected optimal solutions, and ${unconnectedSolutions.length} disjointed solutions.`;
+
+            // Display perfectly connected maps first
+            if (connectedSolutions.length > 0) {
+                container.appendChild(createSection(`🏆 Perfect Fully Connected Charts (${connectedSolutions.length})`, connectedSolutions.slice(0, MAX_DISPLAY), true));
+            }
+
+            // Display disjointed solutions if we haven't hit the display limit
+            if (unconnectedSolutions.length > 0 && connectedSolutions.length < MAX_DISPLAY) {
+                const remain = MAX_DISPLAY - connectedSolutions.length;
+                container.appendChild(createSection(`⚠️ Valid Disjointed Charts`, unconnectedSolutions.slice(0, remain), false));
+            }
+        }
+
+        // Helper function to create DOM structure for a group of result charts
+        function createSection(titleText, grids, isConnected) {
+            const section = document.createElement('div');
+            section.className = 'results-container';
+            
+            const title = document.createElement('h2');
+            title.className = 'results-title';
+            title.style.color = isConnected ? '#4ade80' : '#ffb84d';
+            title.innerText = titleText;
+            section.appendChild(title);
+
+            const gridContainer = document.createElement('div');
+            gridContainer.className = 'results-grid';
+
+            // Loop through each completed 3x3 layout
+            grids.forEach(sol => {
+                const mapDiv = document.createElement('div');
+                mapDiv.className = `map-grid ${isConnected ? 'connected' : ''}`;
+                
+                // Draw individual tiles inside the layout
+                sol.forEach((cellState, idx) => {
+                    const cellWrapper = document.createElement('div');
+                    cellWrapper.style.width = '50px';
+                    cellWrapper.style.height = '50px';
+                    
+                    const cellDiv = document.createElement('div');
+                    cellDiv.className = 'cell-render';
+                    // Highlight the cell if it was manually placed by the user
+                    if (prePlaced[idx] !== null) cellDiv.classList.add('locked');
+                    
+                    renderPathsInto(cellDiv, cellState);
+                    
+                    cellWrapper.appendChild(cellDiv);
+                    mapDiv.appendChild(cellWrapper);
+                });
+                gridContainer.appendChild(mapDiv);
+            });
+            section.appendChild(gridContainer);
+            return section;
+        }
+
+        // Trigger initialization when script loads
+        initSetupGrid();
+    </script>
+</body>
+</html>
