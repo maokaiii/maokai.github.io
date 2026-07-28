@@ -31,19 +31,23 @@ function initSetupGrid() {
         const cell = document.createElement('div');
         cell.className = 'setup-cell';
         
+        // --- 新增：讓九宮格內的元素也可以被拖曳 ---
         cell.draggable = true;
         cell.addEventListener('dragstart', (e) => {
             if (!store.prePlaced[i]) {
-                e.preventDefault(); 
+                e.preventDefault(); // 空白格子不允許拖曳
                 return;
             }
+            // 記錄這塊地圖原本在哪個位置 (0~8)
             e.dataTransfer.setData('sourceIndex', i);
         });
         
+        // 拖曳事件
         cell.addEventListener('dragover', (e) => { e.preventDefault(); cell.classList.add('drag-over'); });
         cell.addEventListener('dragleave', () => cell.classList.remove('drag-over'));
         cell.addEventListener('drop', (e) => dropToCell(e, i, cell));
         
+        // 點擊事件
         cell.addEventListener('click', () => rotateCell(i, cell));
         cell.addEventListener('contextmenu', (e) => { e.preventDefault(); clearCell(i, cell); });
         cell.addEventListener('dblclick', () => clearCell(i, cell));
@@ -61,18 +65,22 @@ function dropToCell(e, targetIndex, cellElem) {
     const sourceIndex = e.dataTransfer.getData('sourceIndex');
 
     if (typeId !== "") {
+        // 【情況 A】來自左側 Palette：直接覆蓋目標格子
         store.prePlaced[targetIndex] = [...BASE_SHAPES[typeId]];
         cellElem.classList.add('locked');
         renderPathsInto(cellElem, store.prePlaced[targetIndex]);
         
     } else if (sourceIndex !== "") {
+        // 【情況 B】來自九宮格內部：兩格資料互相交換
         const fromIdx = parseInt(sourceIndex, 10);
-        if (fromIdx === targetIndex) return;
+        if (fromIdx === targetIndex) return; // 放回原位，不動作
         
+        // 1. 交換資料 (Swap)
         const temp = store.prePlaced[targetIndex];
         store.prePlaced[targetIndex] = store.prePlaced[fromIdx];
         store.prePlaced[fromIdx] = temp;
         
+        // 2. 更新「來源」格子的畫面
         const sourceCell = document.getElementById('setup-grid').children[fromIdx];
         if (store.prePlaced[fromIdx]) {
             renderPathsInto(sourceCell, store.prePlaced[fromIdx]);
@@ -81,6 +89,7 @@ function dropToCell(e, targetIndex, cellElem) {
             sourceCell.innerHTML = '';
         }
         
+        // 3. 更新「目標」格子的畫面
         if (store.prePlaced[targetIndex]) {
             cellElem.classList.add('locked');
             renderPathsInto(cellElem, store.prePlaced[targetIndex]);
