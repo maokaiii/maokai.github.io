@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="maokaiii">
+    <title>Path of Exile 3.29 Allflame League Voyage Combination Calculator by maokaiii</title>
+    
+    <!-- 引入拆分後的 CSS -->
+    <link rel="stylesheet" href="src/css/variables.css">
+    <link rel="stylesheet" href="src/css/layout.css">
+    <link rel="stylesheet" href="src/css/components.css">
+</head>
+<body>
+    <h1>Path of Exile 3.29 Allflame League Voyage Combination Calculator</h1>
+    
+    <div class="description">
+        <strong>Drag and drop</strong> charts from the left palette into the grid.<br>
+        <strong>Left-click</strong> a chart on the grid to rotate it clockwise; <strong>Right-click (or double-click)</strong> to clear it.
+    </div>
+
+    <div class="main-container">
+        <!-- Pre-placement Area (Left Side) -->
+        <div class="setup-panel">
+            <h3>Pre-placement (Drag & Click)</h3>
+            <div id="setup-info" class="setup-info">Tip: Left-click to rotate / Right-click to clear</div>
+            
+            <div class="palette">
+                <div class="palette-wrapper"><div class="palette-item" draggable="true" data-type="0"></div><div class="palette-item-label">Dead End</div></div>
+                <div class="palette-wrapper"><div class="palette-item" draggable="true" data-type="1"></div><div class="palette-item-label">Straight</div></div>
+                <div class="palette-wrapper"><div class="palette-item" draggable="true" data-type="2"></div><div class="palette-item-label">Corner</div></div>
+                <div class="palette-wrapper"><div class="palette-item" draggable="true" data-type="3"></div><div class="palette-item-label">3-Way</div></div>
+                <div class="palette-wrapper"><div class="palette-item" draggable="true" data-type="4"></div><div class="palette-item-label">4-Way</div></div>
+            </div>
+
+            <div class="setup-grid" id="setup-grid"></div>
+        </div>
+
+        <!-- Inventory Input Area (Right Side) -->
+        <div class="inventory-panel">
+            <h3>Remaining Chart in Inventory</h3>
+            <div class="input-group">
+                <label>Dead End (1-way)</label>
+                <input type="number" id="qty-0" value="0" min="0" max="9">
+            </div>
+            <div class="input-group">
+                <label>Straight (2-way)</label>
+                <input type="number" id="qty-1" value="0" min="0" max="9">
+            </div>
+            <div class="input-group">
+                <label>Corner (2-way)</label>
+                <input type="number" id="qty-2" value="0" min="0" max="9">
+            </div>
+            <div class="input-group">
+                <label>T-Junction (3-way)</label>
+                <input type="number" id="qty-3" value="0" min="0" max="9">
+            </div>
+            <div class="input-group">
+                <label>Cross (4-way)</label>
+                <input type="number" id="qty-4" value="0" min="0" max="9">
+            </div>
+            <div id="total-info" class="total-info">Total Count: 0 (Invalid)</div>
+        </div>
+    </div>
+
+    <div class="controls-footer">
+        <button id="btn-reset" class="reset-btn">Reset Board</button>
+        <button id="btn-calc">Calculate</button>
+    </div>
+    
+    <div id="status"></div>
+    <div id="results"></div>
+
+    <footer class="site-footer">
+        Vibed coded by <a href="https://github.com/maokaiii/maokaiii.github.io">maokaiii</a>. Last updated July 28, 2026.<br>
+        CC 2026. This site is not affiliated with or endorsed by Grinding Gear Games.
+    </footer>
+
+    <!-- 引入模組化的 JS -->
+    <script type="module" src="src/js/main.js"></script>
+</body>
+</html>
