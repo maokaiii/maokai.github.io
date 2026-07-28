@@ -31,12 +31,19 @@ function initSetupGrid() {
         const cell = document.createElement('div');
         cell.className = 'setup-cell';
         
-        // 拖曳事件
+        cell.draggable = true;
+        cell.addEventListener('dragstart', (e) => {
+            if (!store.prePlaced[i]) {
+                e.preventDefault(); 
+                return;
+            }
+            e.dataTransfer.setData('sourceIndex', i);
+        });
+        
         cell.addEventListener('dragover', (e) => { e.preventDefault(); cell.classList.add('drag-over'); });
         cell.addEventListener('dragleave', () => cell.classList.remove('drag-over'));
         cell.addEventListener('drop', (e) => dropToCell(e, i, cell));
         
-        // 點擊事件
         cell.addEventListener('click', () => rotateCell(i, cell));
         cell.addEventListener('contextmenu', (e) => { e.preventDefault(); clearCell(i, cell); });
         cell.addEventListener('dblclick', () => clearCell(i, cell));
@@ -46,15 +53,43 @@ function initSetupGrid() {
     updateTotalCount();
 }
 
-function dropToCell(e, index, cellElem) {
+function dropToCell(e, targetIndex, cellElem) {
     e.preventDefault();
     cellElem.classList.remove('drag-over');
+    
     const typeId = e.dataTransfer.getData('typeId');
-    if (typeId === "") return;
+    const sourceIndex = e.dataTransfer.getData('sourceIndex');
 
-    store.prePlaced[index] = [...BASE_SHAPES[typeId]];
-    cellElem.classList.add('locked');
-    renderPathsInto(cellElem, store.prePlaced[index]);
+    if (typeId !== "") {
+        store.prePlaced[targetIndex] = [...BASE_SHAPES[typeId]];
+        cellElem.classList.add('locked');
+        renderPathsInto(cellElem, store.prePlaced[targetIndex]);
+        
+    } else if (sourceIndex !== "") {
+        const fromIdx = parseInt(sourceIndex, 10);
+        if (fromIdx === targetIndex) return;
+        
+        const temp = store.prePlaced[targetIndex];
+        store.prePlaced[targetIndex] = store.prePlaced[fromIdx];
+        store.prePlaced[fromIdx] = temp;
+        
+        const sourceCell = document.getElementById('setup-grid').children[fromIdx];
+        if (store.prePlaced[fromIdx]) {
+            renderPathsInto(sourceCell, store.prePlaced[fromIdx]);
+        } else {
+            sourceCell.classList.remove('locked');
+            sourceCell.innerHTML = '';
+        }
+        
+        if (store.prePlaced[targetIndex]) {
+            cellElem.classList.add('locked');
+            renderPathsInto(cellElem, store.prePlaced[targetIndex]);
+        } else {
+            cellElem.classList.remove('locked');
+            cellElem.innerHTML = '';
+        }
+    }
+    
     updateTotalCount();
 }
 
