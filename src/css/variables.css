@@ -1,0 +1,12 @@
+:root {
+    --bg-color: #0d0d0d;
+    --panel-bg: #1a1a1a;
+    --border-color: #333;
+    --text-color: #e0e0e0;
+    --path-color: #f7c325;
+    --cell-bg: #262626;
+    --cell-hover: #333;
+    --btn-bg: #b97a21;
+    --btn-hover: #e09f3e;
+    --setup-highlight: #4a90e2;
+}
