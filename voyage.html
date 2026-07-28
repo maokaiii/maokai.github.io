@@ -18,7 +18,7 @@
             --cell-hover: #333;
             --btn-bg: #b97a21; /* PoE unique item color scheme */
             --btn-hover: #e09f3e;
-            --setup-highlight: #4a90e2; /* Highlight color for locked tiles */
+            --setup-highlight: #4a90e2; /* Highlight color for locked charts */
         }
 
         /* --- General Body Styles --- */
@@ -130,7 +130,7 @@
             gap: 15px;
         }
 
-        /* --- Input Fields for Tile Quantities --- */
+        /* --- Input Fields for chart Quantities --- */
         .input-group {
             display: flex;
             justify-content: space-between;
@@ -224,8 +224,8 @@
     <h1>Path of Exile 3.29 Allflame League Voyage Combination Calculator</h1>
     
     <div class="description">
-        <strong>Drag and drop</strong> tiles from the left palette into the grid.<br>
-        <strong>Left-click</strong> a tile on the grid to rotate it clockwise; <strong>Right-click (or double-click)</strong> to clear it.
+        <strong>Drag and drop</strong> charts from the left palette into the grid.<br>
+        <strong>Left-click</strong> a chart on the grid to rotate it clockwise; <strong>Right-click (or double-click)</strong> to clear it.
     </div>
 
     <div class="main-container">
@@ -234,7 +234,7 @@
             <h3>Pre-placement (Drag & Click)</h3>
             <div id="setup-info" style="font-size:13px; color:#aaa; margin-bottom: 10px;">Tip: Left-click to rotate / Right-click to clear</div>
             
-            <!-- Draggable Tile Palette -->
+            <!-- Draggable chart Palette -->
             <div class="palette">
                 <div class="palette-wrapper"><div class="palette-item" draggable="true" data-type="0" ondragstart="dragStart(event)"></div><div class="palette-item-label">Dead End</div></div>
                 <div class="palette-wrapper"><div class="palette-item" draggable="true" data-type="1" ondragstart="dragStart(event)"></div><div class="palette-item-label">Straight</div></div>
@@ -250,7 +250,7 @@
 
         <!-- Inventory Input Area (Right Side) -->
         <div class="inventory-panel">
-            <h3>Remaining Tiles in Inventory</h3>
+            <h3>Remaining Chart in Inventory</h3>
             <div class="input-group">
                 <label>Dead End (1-way)</label>
                 <input type="number" id="qty-0" value="0" min="0" max="9">
@@ -304,7 +304,7 @@
             4: [1,1,1,1]  // Cross (4-way)
         };
 
-        // All possible rotational states for each tile type (Used by the pathfinding algorithm, duplicates removed)
+        // All possible rotational states for each chart type (Used by the pathfinding algorithm, duplicates removed)
         const PIECE_TYPES = {
             0: { states: [[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]] },
             1: { states: [[1,0,1,0], [0,1,0,1]] },
@@ -313,9 +313,9 @@
             4: { states: [[1,1,1,1]] }
         };
 
-        // Tracks the manually placed tiles by the user (9 slots)
+        // Tracks the manually placed charts by the user (9 slots)
         let prePlaced = new Array(9).fill(null);
-        let placedCount = 0; // Number of tiles placed on the board
+        let placedCount = 0; // Number of charts placed on the board
 
         // --- UI Initialization ---
 
@@ -360,12 +360,12 @@
 
         // --- Interaction Logic (Drag & Drop, Rotate, Clear) ---
 
-        // Stores the dragged tile's ID
+        // Stores the dragged chart's ID
         function dragStart(e) {
             e.dataTransfer.setData('typeId', e.target.dataset.type);
         }
 
-        // Handles placing a tile into a specific cell on the grid
+        // Handles placing a chart into a specific cell on the grid
         function dropToCell(e, index, cellElem) {
             e.preventDefault();
             cellElem.classList.remove('drag-over');
@@ -379,7 +379,7 @@
             updateTotalCount();
         }
 
-        // Rotates the tile inside the cell clockwise
+        // Rotates the chart inside the cell clockwise
         function rotateCell(index, cellElem) {
             if (!prePlaced[index]) return; // Cannot rotate an empty cell
             
@@ -390,7 +390,7 @@
             renderPathsInto(cellElem, prePlaced[index]);
         }
 
-        // Removes a tile from a cell
+        // Removes a chart from a cell
         function clearCell(index, cellElem) {
             prePlaced[index] = null;
             cellElem.classList.remove('locked');
@@ -411,7 +411,7 @@
             document.getElementById(`qty-${i}`).addEventListener('input', updateTotalCount);
         }
 
-        // Validates whether the total tiles (Board + Inventory) equals 9 (the size of a 3x3 chart)
+        // Validates whether the total charts (Board + Inventory) equals 9 (the size of a 3x3 chart)
         function updateTotalCount() {
             placedCount = prePlaced.filter(p => p !== null).length;
             document.getElementById('setup-info').innerText = `Tip: Left-click rotate / Right-click clear (Placed: ${placedCount})`;
@@ -456,7 +456,7 @@
             }
 
             statusDiv.style.color = '#e0e0e0';
-            statusDiv.innerText = 'Calculating chart combination based on pre-placed tiles...';
+            statusDiv.innerText = 'Calculating chart combination based on pre-placed charts...';
             resultsDiv.innerHTML = '';
             
             // Execute algorithm with a tiny timeout to allow UI to update the status text
@@ -490,7 +490,7 @@
             return true;
         }
 
-        // Verifies if the fully constructed 9-tile grid has 1 contiguous network (all nodes connected)
+        // Verifies if the fully constructed 9-chart grid has 1 contiguous network (all nodes connected)
         // Uses Breadth-First Search (BFS) starting from cell 0
         function isFullyConnected(grid) {
             let visited = new Set([0]);
@@ -509,7 +509,7 @@
                 // Traverse Left
                 if (col > 0 && grid[curr][3] === 1 && !visited.has(curr - 1)) { visited.add(curr - 1); queue.push(curr - 1); }
             }
-            // If all 9 tiles were reachable from tile 0, it's fully connected
+            // If all 9 charts were reachable from chart 0, it's fully connected
             return visited.size === 9;
         }
 
@@ -564,7 +564,7 @@
 
             if (totalFound === 0) {
                 statusDiv.style.color = '#ff6b6b';
-                statusDiv.innerText = `Done (${timeMs.toFixed(1)}ms): No valid chart configurations found with the locked tiles and current inventory.`;
+                statusDiv.innerText = `Done (${timeMs.toFixed(1)}ms): No valid chart configurations found with the locked charts and current inventory.`;
                 return;
             }
 
@@ -602,7 +602,7 @@
                 const mapDiv = document.createElement('div');
                 mapDiv.className = `map-grid ${isConnected ? 'connected' : ''}`;
                 
-                // Draw individual tiles inside the layout
+                // Draw individual charts inside the layout
                 sol.forEach((cellState, idx) => {
                     const cellWrapper = document.createElement('div');
                     cellWrapper.style.width = '50px';
