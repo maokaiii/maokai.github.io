@@ -206,12 +206,22 @@
         .results-container { margin-bottom: 40px; }
         .results-title { font-size: 18px; margin-bottom: 15px; text-align: left; padding-left: 10%; border-bottom: 1px solid #444; padding-bottom: 10px; }
         .results-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 0 20px; }
+        
+        /* --- Footer Styles --- */
+        .site-footer {
+            margin-top: 50px;
+            padding: 20px;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
 
     <h1>PoE 3x3 League Chart Synthesis Calculator</h1>
-    <div class="author-tag">Created by maokaiii</div>
     
     <div class="description">
         <strong>Drag and drop</strong> tiles from the left palette into the grid.<br>
@@ -226,7 +236,6 @@
             
             <!-- Draggable Tile Palette -->
             <div class="palette">
-                <!-- Data type maps to piece IDs -->
                 <div class="palette-wrapper"><div class="palette-item" draggable="true" data-type="0" ondragstart="dragStart(event)"></div><div class="palette-item-label">Dead End</div></div>
                 <div class="palette-wrapper"><div class="palette-item" draggable="true" data-type="1" ondragstart="dragStart(event)"></div><div class="palette-item-label">Straight</div></div>
                 <div class="palette-wrapper"><div class="palette-item" draggable="true" data-type="2" ondragstart="dragStart(event)"></div><div class="palette-item-label">Corner</div></div>
@@ -242,7 +251,6 @@
         <!-- Inventory Input Area (Right Side) -->
         <div class="inventory-panel">
             <h3>Remaining Tiles in Inventory</h3>
-            <!-- Quantity inputs for different tile types -->
             <div class="input-group">
                 <label>Dead End (1-way)</label>
                 <input type="number" id="qty-0" value="0" min="0" max="9">
@@ -276,6 +284,13 @@
     <!-- Status & Results Output Containers -->
     <div id="status"></div>
     <div id="results"></div>
+
+    <!-- Footer / Disclaimer -->
+    <footer class="site-footer">
+        The results given are not guaranteed to be right (but I tried!)<br>
+        Made by maokaiii. Last updated July 24, 2026.<br>
+        CC0 2026. This site is not affiliated with or endorsed by Grinding Gear Games.
+    </footer>
 
     <script>
         // --- Core Data Structures ---
